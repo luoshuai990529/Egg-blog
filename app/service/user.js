@@ -15,6 +15,8 @@ class UserService extends Service {
       */
   //    注册账号：插入数据
   async insertUserService(data) {
+    // 1-初始化事务
+    const conn = await this.ctx.app.mysql.beginTransaction();
     try {
       // 注册之前先查询user表中是否有相同的account，如果有就返回该账号已注册
       const account = data.account;
@@ -24,14 +26,21 @@ class UserService extends Service {
         return { code: 202, success: 'ok', message: '该账号已存在,请重新注册' };
       }
       const salt = account.substring(account.length - 4);
-      const password = this.ctx.helper.md5(this.ctx.helper.md5(data.password + salt));
       const username = this.ctx.helper.createUserName();
-      const res = await this.ctx.app.mysql.insert('user', { account, password, username });
+      const password = this.ctx.helper.md5(this.ctx.helper.md5(data.password + salt));
+      // 第一步操作 用户表进行注册
+      const res = await conn.insert('user', { account, password, username });
+      // 第二部操作 查询出改表的id 插入到对应的user_roles表中,默认rid为2  游客
+      const id = res.insertId
+      const res2 = await conn.query(`INSERT INTO user_roles(uid,rid) VALUES('${id}','2')`)      
+      const connRes = await conn.commit(); // 提交事务
       // res.affectedRows如果===1 就表示插入成功
-      if (res.affectedRows === 1) {
+      if (res2.affectedRows === 1) {
         return { code: 200, success: 'ok', message: '注册成功' };
       }
     } catch (error) {
+      // 捕获异常  回滚事务！
+      await conn.rollback(); 
       return { code: 202, success: 'ok', message: '注册失败' };
     }
   }
@@ -44,12 +53,12 @@ class UserService extends Service {
       // 1.1 密码也需要加密之后再去数据库进行查询
       const password = this.ctx.helper.md5(this.ctx.helper.md5(data.password + salt));
       const result = await this.ctx.app.mysql.get('user', { account, password });
-      if (result.state === 0) {
-        return { code: 403, success: 'ok', message: '你的账号已被冻结，禁止访问' };
-      }
       //   const keys = 'Lewis&Florence';
       const keys = this.ctx.app.config.keys; // 拿到config中的keys作为公钥
       if (result) {
+        if (result.state === 0) {
+          return { code: 403, success: 'ok', message: '你的账号已被冻结，禁止访问' };
+        }
         this.app.currentUid = result.id;
         this.app.currentAccount = data.account;
         // 2.如果可以查到结果就 生成token
@@ -69,6 +78,7 @@ class UserService extends Service {
       return { code: 403, success: 'no', message: '用户或密码错误，请重新输入' };
 
     } catch (error) {
+      console.log(error);
       return { code: 403, success: 'no', message: error };
     }
   }

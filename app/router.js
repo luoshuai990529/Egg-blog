@@ -18,11 +18,19 @@ module.exports = app => {
   const tokenCheck = app.middleware.tokenCheck();
   // 在执行请求test之前先要经过clientCheck，通过了才往下执行
   // 2.利用处理路由的对象监听路由的请求
+  // 用户登录注册 登录信息查询接口
   router.post('/api/login', controller.user.loginUserController);
   router.post('/api/register', controller.user.registerUserController);
   router.get('/api/captcha', controller.user.createCaptchaController);
   router.post('/api/user', tokenCheck, controller.user.getUserInfoController);
+
+  // 授权相关接口
   router.get('/api/auth/list', tokenCheck, controller.auth.getAuthListController);
+  router.get('/api/auth/roles', tokenCheck, controller.auth.getRolesController);
+  router.get('/api/auth/userauth', tokenCheck, controller.auth.getUserAuthController);
+  router.post('/api/auth/editauth', tokenCheck, controller.auth.editUserAuthController);
+  router.post('/api/auth/freeze', tokenCheck, controller.auth.freezeUserController);
+  router.post('/api/auth/active', tokenCheck, controller.auth.activeUserController);
   // router.get('/api/register/:name/:age', controller.home.getParams);
   // router.post('/login', controller.home.getBody);
   // router.get('/setcookie', controller.home.setCookie);
