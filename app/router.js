@@ -25,12 +25,15 @@ module.exports = app => {
   router.post('/api/user', tokenCheck, controller.user.getUserInfoController);
 
   // 授权相关接口
-  router.get('/api/auth/list', tokenCheck, controller.auth.getAuthListController);
-  router.get('/api/auth/roles', tokenCheck, controller.auth.getRolesController);
-  router.get('/api/auth/userauth', tokenCheck, controller.auth.getUserAuthController);
+  router.get('/api/auth/list',  controller.auth.getAuthListController);
+  router.get('/api/auth/roles',  controller.auth.getRolesController);
+  router.get('/api/auth/userauth',  controller.auth.getUserAuthController);
   router.post('/api/auth/editauth', tokenCheck, controller.auth.editUserAuthController);
   router.post('/api/auth/freeze', tokenCheck, controller.auth.freezeUserController);
   router.post('/api/auth/active', tokenCheck, controller.auth.activeUserController);
+  router.get('/api/auth/rights',controller.auth.getRightListController)
+  router.post('/api/auth/create', tokenCheck, controller.auth.createRoleController);
+  
   // router.get('/api/register/:name/:age', controller.home.getParams);
   // router.post('/login', controller.home.getBody);
   // router.get('/setcookie', controller.home.setCookie);

@@ -39,6 +39,16 @@ class AuthController extends Controller {
       this.ctx.body = result
   }
 
+  async getRightListController(){
+      const result = await this.ctx.service.auth.getRightListService()
+      this.ctx.body = result
+  }
+
+  async createRoleController(){
+      const query = this.ctx.request.body
+      const result = await this.ctx.service.auth.createRoleService(query)
+      this.ctx.body = result
+  }
 }
 
 module.exports = AuthController;

@@ -52,7 +52,7 @@ class HomeService extends Service {
   // 查询出所有的roles
   async queryRolesService(){
     try {
-      const result = await this.ctx.app.mysql.query("select id,role_name from role")
+      const result = await this.ctx.app.mysql.query("select id,role_name,description,create_time,update_time from role")
       return {code: 200,success: 'ok',message:'成功', data:[...result]}
     } catch (error) {
       return { code: 200, success: 'no', message: error };
@@ -126,6 +126,68 @@ class HomeService extends Service {
       }
     } catch (error) {
       return { code: 200, success: 'no', message: error };
+    }
+  }
+  // 查询所有的菜单权限和api权限
+  async getRightListService(){
+    try {
+      const sql = `SELECT
+                    id,
+                    right_name as name,
+                    right_type as type,
+                    right_path as path,
+                    right_desc as description
+                  FROM
+                    rights`
+      const result =  await this.ctx.app.mysql.query(sql)
+      const menus = [];
+      const actions = [];
+      result.forEach(item=>{
+        if(item.type== 'menu'){
+          menus.push(item)
+        }
+        if(item.type== 'action'){
+          actions.push(item)
+        }
+      })
+      if(result){
+          return {code:200 ,success:'ok',message:'成功',data:{menus,actions}}
+      }
+    } catch (error) {
+      console.log(error);
+      return { code: 200, success: 'no', message: "获取权限信息失败" };
+    }
+  }
+  // 新增角色
+  async createRoleService(data){
+    // 1-初始化事务
+    const conn = await this.ctx.app.mysql.beginTransaction();
+    try {
+      const sql1 = `
+                    INSERT INTO role ( role_name, description, create_time )
+                    VALUES
+                      ( '${data.name}', '${data.desc}', now( ) )
+                    `
+      // 第一步操作：新增角色
+      const res1 = await conn.query(sql1)
+      // 第二部操作：新增角色对应的权限
+      let str1 = `INSERT INTO role_rights ( role_id, right_id, create_time )
+                    VALUES`
+      let str2 = ``
+      data.rights.map((item,index)=>{
+        index == data.rights.length-1?str2 += `(${res1.insertId},${item},now())`:str2 += `(${res1.insertId},${item},now()),`
+      })
+      const sql2 = str1 + str2
+      const res2 = await conn.query(sql2)
+      const connRes = await conn.commit(); // 提交事务
+      if(res2.affectedRows != 0){
+        return {code:200 ,success:'ok',message:'新增角色成功！'}
+      }
+    } catch (error) {
+      console.log(error);
+      // 捕获异常  回滚事务！
+      await conn.rollback(); 
+      return { code: 200, success: 'no', message: "新增角色失败" };
     }
   }
 }
