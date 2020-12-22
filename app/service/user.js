@@ -31,16 +31,16 @@ class UserService extends Service {
       // 第一步操作 用户表进行注册
       const res = await conn.insert('user', { account, password, username });
       // 第二部操作 查询出改表的id 插入到对应的user_roles表中,默认rid为2  游客
-      const id = res.insertId
-      const res2 = await conn.query(`INSERT INTO user_roles(uid,rid) VALUES('${id}','2')`)      
-      const connRes = await conn.commit(); // 提交事务
+      const id = res.insertId;
+      const res2 = await conn.query(`INSERT INTO user_roles(uid,rid) VALUES('${id}','2')`);
+      await conn.commit(); // 提交事务
       // res.affectedRows如果===1 就表示插入成功
       if (res2.affectedRows === 1) {
         return { code: 200, success: 'ok', message: '注册成功' };
       }
     } catch (error) {
       // 捕获异常  回滚事务！
-      await conn.rollback(); 
+      await conn.rollback();
       return { code: 202, success: 'ok', message: '注册失败' };
     }
   }

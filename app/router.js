@@ -24,16 +24,20 @@ module.exports = app => {
   router.get('/api/captcha', controller.user.createCaptchaController);
   router.post('/api/user', tokenCheck, controller.user.getUserInfoController);
 
-  // 授权相关接口
-  router.get('/api/auth/list',  controller.auth.getAuthListController);
-  router.get('/api/auth/roles',  controller.auth.getRolesController);
-  router.get('/api/auth/userauth',  controller.auth.getUserAuthController);
+  // 用户状态管理接口
+  router.get('/api/auth/list', controller.auth.getAuthListController);
+  router.get('/api/auth/roles', controller.auth.getRolesController);
+  router.get('/api/auth/userauth', controller.auth.getUserAuthController);
   router.post('/api/auth/editauth', tokenCheck, controller.auth.editUserAuthController);
   router.post('/api/auth/freeze', tokenCheck, controller.auth.freezeUserController);
   router.post('/api/auth/active', tokenCheck, controller.auth.activeUserController);
-  router.get('/api/auth/rights',controller.auth.getRightListController)
+  // 角色权限管理接口
+  router.get('/api/auth/rights', controller.auth.getRightListController);
   router.post('/api/auth/create', tokenCheck, controller.auth.createRoleController);
-  
+  router.post('/api/auth/delete', tokenCheck, controller.auth.deleteRoleController);
+  router.get('/api/auth/getRoleInfo', controller.auth.getRoleInfoController);
+  router.post('/api/auth/editRole', tokenCheck, controller.auth.editRoleController);
+
   // router.get('/api/register/:name/:age', controller.home.getParams);
   // router.post('/login', controller.home.getBody);
   // router.get('/setcookie', controller.home.setCookie);
