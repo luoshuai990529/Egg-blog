@@ -256,7 +256,6 @@ class HomeService extends Service {
     // 1-初始化事务
     const conn = await this.ctx.app.mysql.beginTransaction();
     try {
-      // console.log(data);
       const { id, name, desc, rights } = data;
       const sql1 = `UPDATE role 
       SET role_name = '${name}',
@@ -280,7 +279,6 @@ class HomeService extends Service {
         index === data.rights.length - 1 ? str2 += `(${id},${item},now())` : str2 += `(${id},${item},now()),`;
       });
       const sql3 = str1 + str2;
-      console.log(sql3);
       const result = await conn.query(sql3);
       await conn.commit(); // 提交事务
       if (result.affectedRows > 0) {

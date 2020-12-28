@@ -38,6 +38,9 @@ module.exports = app => {
   router.get('/api/auth/getRoleInfo', controller.auth.getRoleInfoController);
   router.post('/api/auth/editRole', tokenCheck, controller.auth.editRoleController);
 
+  // 待办列表接口
+  router.post('/api/todo/create', tokenCheck, controller.todo.createEventController);
+
   // router.get('/api/register/:name/:age', controller.home.getParams);
   // router.post('/login', controller.home.getBody);
   // router.get('/setcookie', controller.home.setCookie);
