@@ -13,6 +13,24 @@ class TodoController extends Controller {
     const result = await this.ctx.service.todo.queryEventService();
     this.ctx.body = result;
   }
+
+  async completeEventController() {
+    const body = this.ctx.request.body;
+    const result = await this.ctx.service.todo.completeEventService(body);
+    this.ctx.body = result;
+  }
+
+  async cancleEventController() {
+    const body = this.ctx.request.body;
+    const result = await this.ctx.service.todo.cancleEventService(body);
+    this.ctx.body = result;
+  }
+
+  async deleteEventController() {
+    const body = this.ctx.request.body;
+    const result = await this.ctx.service.todo.deleteEventService(body);
+    this.ctx.body = result;
+  }
 }
 
 module.exports = TodoController;

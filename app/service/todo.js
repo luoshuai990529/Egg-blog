@@ -153,6 +153,54 @@ class TodoService extends Service {
     }
   }
 
+  // 完成待办事件
+  async completeEventService({ id }) {
+    try {
+      const sql = ` UPDATE agenda 
+                    SET complete = '1' 
+                    WHERE
+                      id = ${id}`;
+      const res = await this.ctx.app.mysql.query(sql);
+      if (res.affectedRows === 1) {
+        return { code: 200, success: 'ok', message: '成功完成事件' };
+      }
+    } catch (error) {
+      return { code: 200, success: 'no', message: error };
+    }
+  }
+
+  // 撤销已完成的待办事件
+  async cancleEventService({ id }) {
+    try {
+      const sql = ` UPDATE agenda 
+                    SET complete = '0' 
+                    WHERE
+                      id = ${id}`;
+      const res = await this.ctx.app.mysql.query(sql);
+      if (res.affectedRows === 1) {
+        return { code: 200, success: 'ok', message: '撤销成功' };
+      }
+    } catch (error) {
+      return { code: 200, success: 'no', message: error };
+    }
+  }
+
+  // 删除创建的待办
+  async deleteEventService({ id }) {
+    try {
+      const sql = ` DELETE 
+                    FROM
+                      agenda 
+                    WHERE
+                      id = ${id}`;
+      const res = await this.ctx.app.mysql.query(sql);
+      if (res.affectedRows === 1) {
+        return { code: 200, success: 'ok', message: '删除成功' };
+      }
+    } catch (error) {
+      return { code: 200, success: 'no', message: error };
+    }
+  }
 }
 
 module.exports = TodoService;

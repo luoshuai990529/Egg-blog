@@ -41,6 +41,9 @@ module.exports = app => {
   // 待办列表接口
   router.post('/api/todo/create', tokenCheck, controller.todo.createEventController);
   router.get('/api/todo/list', controller.todo.queryEventController);
+  router.post('/api/todo/complete', tokenCheck, controller.todo.completeEventController);
+  router.post('/api/todo/cancle', tokenCheck, controller.todo.cancleEventController);
+  router.post('/api/todo/delete', tokenCheck, controller.todo.deleteEventController);
   // router.get('/api/register/:name/:age', controller.home.getParams);
   // router.post('/login', controller.home.getBody);
   // router.get('/setcookie', controller.home.setCookie);
