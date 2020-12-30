@@ -24,7 +24,7 @@ class TodoService extends Service {
   async createEventService(data) {
     const conn = await this.ctx.app.mysql.beginTransaction();
     try {
-      const { todoType, description, open, priority, tags } = data;
+      const { todoType, description, open, priority, tags, uid } = data;
       let start_time = '';
       let end_time = '';
       switch (todoType) {
@@ -54,7 +54,8 @@ class TodoService extends Service {
                       WHERE
                         COMMIT = '0' 
                         AND date_type = '${todoType}' 
-                        AND start_time = '${start_time}' `;
+                        AND start_time = '${start_time}' 
+                        AND uid = ${uid}`;
       const secRes = await this.ctx.app.mysql.query(secSql);
       let date_id = null;
       if (secRes.length === 0) {
@@ -80,7 +81,7 @@ class TodoService extends Service {
   }
 
   // 查询正在进行的 日周月年 待办事件
-  async queryEventService() {
+  async queryEventService({ uid }) {
     try {
       const dayTime = this.ctx.helper.parseTime(new Date(new Date().toLocaleDateString()).getTime(), '{y}-{m}-{d} {h}:{i}:{s}');
       const weekTime = this.ctx.helper.parseTime(this.ctx.helper.getWeekStartDateAndEndDateRange()[0], '{y}-{m}-{d} {h}:{i}:{s}');
@@ -103,15 +104,10 @@ class TodoService extends Service {
                   agenda ad
                   LEFT JOIN agenda_date adt ON ad.date_id = adt.id 
                 WHERE
-                  adt.start_time = '${dayTime}' 
-                  AND adt.date_type = '0' 
-                  OR start_time = '${weekTime}' 
-                  AND adt.date_type = '1' 
-                  OR start_time = '${monthTime}' 
-                  AND adt.date_type = '2' 
-                  OR start_time = '${yearTime}' 
-                  AND adt.date_type = '3'
-                  OR adt.COMMIT = '0'`;
+                  adt.commit = '0'
+                  AND 
+                  adt.uid = ${uid}
+                  `;
       const result = await this.ctx.app.mysql.query(sql);
       const dayList = [];
       const weekList = [];
@@ -121,11 +117,11 @@ class TodoService extends Service {
       result.forEach(item => {
         const time_mark = this.ctx.helper.parseTime(new Date(item.start_time).getTime());
         let count = 0;
-        time_mark === dayTime && item.date_type === '0' ? dayList.push(item) : count++;
-        time_mark === weekTime && item.date_type === '1' ? weekList.push(item) : count++;
-        time_mark === monthTime && item.date_type === '2' ? monthList.push(item) : count++;
-        time_mark === yearTime && item.date_type === '3' ? yearList.push(item) : count++;
-        if (count === 4) {
+        time_mark === dayTime && item.date_type === '0' && item.commit === '0' ? dayList.push(item) : count++;
+        time_mark === weekTime && item.date_type === '1' && item.commit === '0' ? weekList.push(item) : count++;
+        time_mark === monthTime && item.date_type === '2' && item.commit === '0' ? monthList.push(item) : count++;
+        time_mark === yearTime && item.date_type === '3' && item.commit === '0' ? yearList.push(item) : count++;
+        if (count === 4 && item.commit === '0') {
           unCmtList.push(item);
         }
       });
@@ -196,6 +192,43 @@ class TodoService extends Service {
       const res = await this.ctx.app.mysql.query(sql);
       if (res.affectedRows === 1) {
         return { code: 200, success: 'ok', message: '删除成功' };
+      }
+    } catch (error) {
+      return { code: 200, success: 'no', message: error };
+    }
+  }
+
+  // 提交待办事项
+  async commitEventService(data) {
+    const { mood, remarks, start_time, id } = data;
+    console.log(`当前的心情：${mood}`);
+    console.log(`备注：${remarks}`);
+    console.log(`开始时间：${start_time}`);
+    console.log(`当前的id：${id}`);
+    try {
+      let sql;
+      if (start_time === '') {
+        sql = `
+        UPDATE agenda_date 
+        SET remarks = '${remarks}',
+        mood = '${mood}',
+        commit = '1' 
+        WHERE
+          id = ${id}`;
+      } else {
+        sql = `
+        UPDATE agenda_date 
+        SET remarks = '${remarks}',
+        mood = '${mood}',
+        commit = '1' 
+        WHERE
+          date_type = ${id} 
+          AND start_time = '${start_time}'
+        `;
+      }
+      const res = await this.ctx.app.mysql.query(sql);
+      if (res.affectedRows === 1) {
+        return { code: 200, success: 'ok', message: '提交成功' };
       }
     } catch (error) {
       return { code: 200, success: 'no', message: error };
