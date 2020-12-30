@@ -37,6 +37,19 @@ class TodoController extends Controller {
     const result = await this.ctx.service.todo.commitEventService(body);
     this.ctx.body = result;
   }
+
+  async queryEventByDateController() {
+    const query = this.ctx.query;
+    const result = await this.ctx.service.todo.queryEventByDateService(query);
+    this.ctx.body = result;
+  }
+
+  async isopenController() {
+    const body = this.ctx.request.body;
+    const result = await this.ctx.service.todo.isopenService(body);
+    this.ctx.body = result;
+  }
+
 }
 
 module.exports = TodoController;

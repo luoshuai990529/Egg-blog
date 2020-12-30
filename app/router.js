@@ -45,6 +45,9 @@ module.exports = app => {
   router.post('/api/todo/cancle', tokenCheck, controller.todo.cancleEventController);
   router.post('/api/todo/delete', tokenCheck, controller.todo.deleteEventController);
   router.post('/api/todo/commit', tokenCheck, controller.todo.commitEventController);
+  router.get('/api/todo/queryEventByDate', controller.todo.queryEventByDateController);
+  router.post('/api/todo/isopen', tokenCheck, controller.todo.isopenController);
+
   // router.get('/api/register/:name/:age', controller.home.getParams);
   // router.post('/login', controller.home.getBody);
   // router.get('/setcookie', controller.home.setCookie);

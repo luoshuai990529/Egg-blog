@@ -201,10 +201,6 @@ class TodoService extends Service {
   // 提交待办事项
   async commitEventService(data) {
     const { mood, remarks, start_time, id } = data;
-    console.log(`当前的心情：${mood}`);
-    console.log(`备注：${remarks}`);
-    console.log(`开始时间：${start_time}`);
-    console.log(`当前的id：${id}`);
     try {
       let sql;
       if (start_time === '') {
@@ -229,6 +225,55 @@ class TodoService extends Service {
       const res = await this.ctx.app.mysql.query(sql);
       if (res.affectedRows === 1) {
         return { code: 200, success: 'ok', message: '提交成功' };
+      }
+    } catch (error) {
+      return { code: 200, success: 'no', message: error };
+    }
+  }
+
+  // 根据日期查询已完成待办
+  async queryEventByDateService(data) {
+    try {
+      const { dateType, time } = data;
+      const sql = `
+      SELECT
+        ad.id,
+        ad.date_id,
+        ad.description,
+        ad.open,
+        ad.tags,
+        ad.complete,
+        ad.priority,
+        adt.remarks,
+        adt.mood 
+      FROM
+        agenda ad
+        LEFT JOIN agenda_date adt ON ad.date_id = adt.id 
+      WHERE
+        ad.date_id = ( SELECT adt.id FROM agenda_date adt WHERE date_type = '${dateType}' AND start_time = '${time}' )
+        AND
+        adt.commit='1'
+        `;
+      const result = await this.ctx.app.mysql.query(sql);
+      result.forEach(item => {
+        item.openDesc = item.open === '1' ? '是' : '否';
+        item.completeDesc = item.complete === '1' ? '已完成' : '未完成';
+      });
+      return { code: 200, success: 'ok', message: '成功', data: result };
+
+    } catch (error) {
+      return { code: 200, success: 'no', message: error };
+    }
+  }
+
+  // 操作待办事件的是否公开
+  async isopenService({ id, open }) {
+    try {
+      const sql = open === '1' ? `  UPDATE agenda SET OPEN = '0' WHERE id = ${id}`
+        : `UPDATE agenda SET OPEN = '1'  WHERE id = ${id}`;
+      const res = await this.ctx.app.mysql.query(sql);
+      if (res.affectedRows === 1) {
+        return { code: 200, success: 'ok', message: '修改成功' };
       }
     } catch (error) {
       return { code: 200, success: 'no', message: error };
